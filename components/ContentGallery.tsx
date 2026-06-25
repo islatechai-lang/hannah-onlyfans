@@ -13,12 +13,17 @@ interface Props {
 export default function ContentGallery({ hasAccess, onUnlock }: Props) {
   const [content, setContent] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<"all" | "image" | "video">("all");
 
   useEffect(() => {
     getAllContent()
       .then(setContent)
       .finally(() => setLoading(false));
   }, []);
+
+  const filteredContent = content.filter(
+    (item) => activeFilter === "all" || item.type === activeFilter
+  );
 
   if (loading) {
     return (
@@ -48,13 +53,32 @@ export default function ContentGallery({ hasAccess, onUnlock }: Props) {
 
   return (
     <div>
-      <h2 className="text-2xl font-black mb-6">
-        Exclusive Content{" "}
-        {!hasAccess && <span className="badge-red ml-2">🔒 Locked</span>}
-      </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <h2 className="text-2xl font-black flex items-center gap-2">
+          Exclusive Content{" "}
+          {!hasAccess && <span className="badge-red">🔒 Locked</span>}
+        </h2>
+        
+        {/* Filter Tabs */}
+        <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/5 w-fit">
+          {(["all", "image", "video"] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setActiveFilter(filter)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all uppercase cursor-pointer ${
+                activeFilter === filter
+                  ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                  : "text-rose-200/50 hover:text-rose-200"
+              }`}
+            >
+              {filter === "all" ? "🔥 All" : filter === "image" ? "📸 Photos" : "🎬 Videos"}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {content.map((item, i) => (
+        {filteredContent.map((item, i) => (
           <motion.div
             key={item.id}
             initial={{ opacity: 0, scale: 0.95 }}
@@ -66,32 +90,29 @@ export default function ContentGallery({ hasAccess, onUnlock }: Props) {
             {/* Content preview */}
             {item.type === "image" ? (
               <Image
-                src={
-                  (hasAccess || !item.isLocked)
-                    ? item.url
-                    : item.thumbnailUrl || item.url
-                }
+                src={item.url}
                 alt={item.title}
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                 style={{
                   filter:
-                    item.isLocked && !hasAccess ? "blur(16px) brightness(0.5)" : "none",
+                    item.isLocked && !hasAccess ? "blur(24px) brightness(0.4)" : "none",
                 }}
               />
             ) : (
               <video
-                src={(hasAccess || !item.isLocked) ? item.url : undefined}
+                src={item.url}
                 className="w-full h-full object-cover"
                 style={{
                   filter:
-                    item.isLocked && !hasAccess ? "blur(16px) brightness(0.5)" : "none",
+                    item.isLocked && !hasAccess ? "blur(24px) brightness(0.4)" : "none",
                 }}
                 muted
                 loop
                 playsInline
+                autoPlay={item.isLocked && !hasAccess}
                 onMouseEnter={(e) => hasAccess && e.currentTarget.play()}
-                onMouseLeave={(e) => e.currentTarget.pause()}
+                onMouseLeave={(e) => !item.isLocked && e.currentTarget.pause()}
               />
             )}
 
@@ -107,7 +128,7 @@ export default function ContentGallery({ hasAccess, onUnlock }: Props) {
                 </span>
                 <button
                   onClick={onUnlock}
-                  className="btn-red mt-3 text-xs py-1.5 px-3"
+                  className="btn-red mt-3 text-xs py-1.5 px-3 cursor-pointer"
                 >
                   Unlock
                 </button>

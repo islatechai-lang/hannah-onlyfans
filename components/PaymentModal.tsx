@@ -209,8 +209,9 @@ export default function PaymentModal({
                 <UploadButton<OurFileRouter, "paymentScreenshot">
                   endpoint="paymentScreenshot"
                   onClientUploadComplete={(res) => {
-                    if (res?.[0]?.ufsUrl) {
-                      handleUploadComplete(res[0].ufsUrl);
+                    const url = res?.[0]?.ufsUrl || res?.[0]?.url;
+                    if (url) {
+                      handleUploadComplete(url);
                     }
                   }}
                   onUploadError={(err) => {

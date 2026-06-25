@@ -38,6 +38,7 @@ export default function AdminPage() {
   const [newUrl, setNewUrl] = useState("");
   const [isLocked, setIsLocked] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [previewContent, setPreviewContent] = useState<Content | null>(null);
 
   const handleLogin = async () => {
     setAuthError("");
@@ -587,7 +588,8 @@ export default function AdminPage() {
                         newType === "image" ? "contentImage" : "contentVideo"
                       }
                       onClientUploadComplete={(res) => {
-                        if (res?.[0]?.ufsUrl) setNewUrl(res[0].ufsUrl);
+                        const url = res?.[0]?.ufsUrl || res?.[0]?.url;
+                        if (url) setNewUrl(url);
                       }}
                       onUploadError={(err) => alert("Upload error: " + err.message)}
                       appearance={{
@@ -622,8 +624,21 @@ export default function AdminPage() {
                     className="relative group glass overflow-hidden"
                     style={{ borderRadius: 14 }}
                   >
-                    <div className="aspect-square bg-rose-900/20 flex items-center justify-center text-3xl">
-                      {c.type === "image" ? "📸" : "🎬"}
+                    <div className="aspect-square bg-rose-900/20 flex items-center justify-center relative overflow-hidden">
+                      {c.type === "image" ? (
+                        <img
+                          src={c.url}
+                          alt={c.title}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <video
+                          src={c.url}
+                          className="object-cover w-full h-full"
+                          muted
+                          playsInline
+                        />
+                      )}
                     </div>
                     <div className="p-2">
                       <p className="text-xs font-semibold truncate">
@@ -641,17 +656,15 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <a
-                        href={c.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn-ghost text-xs py-1 px-2"
+                      <button
+                        onClick={() => setPreviewContent(c)}
+                        className="btn-ghost text-xs py-1 px-2 cursor-pointer"
                       >
                         View
-                      </a>
+                      </button>
                       <button
                         onClick={() => handleDeleteContent(c.id)}
-                        className="text-xs py-1 px-2 rounded-lg bg-red-900/50 border border-red-500/30 text-red-400"
+                        className="text-xs py-1 px-2 rounded-lg bg-red-900/50 border border-red-500/30 text-red-400 cursor-pointer"
                       >
                         Delete
                       </button>
@@ -672,6 +685,48 @@ export default function AdminPage() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Lightbox Preview Modal */}
+      {previewContent && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(10,3,5,0.9)", backdropFilter: "blur(10px)" }}
+          onClick={() => setPreviewContent(null)}
+        >
+          <div
+            className="relative max-w-3xl max-h-[85vh] w-full flex flex-col items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewContent(null)}
+              className="absolute -top-10 right-0 text-white text-base hover:text-rose-400 cursor-pointer font-bold"
+            >
+              ✕ Close Preview
+            </button>
+            {previewContent.type === "image" ? (
+              <img
+                src={previewContent.url}
+                alt={previewContent.title}
+                className="max-w-full max-h-[70vh] object-contain rounded-lg glow-border"
+              />
+            ) : (
+              <video
+                src={previewContent.url}
+                className="max-w-full max-h-[70vh] object-contain rounded-lg glow-border"
+                controls
+                autoPlay
+                playsInline
+              />
+            )}
+            <h3 className="text-lg font-bold mt-4 text-center text-rose-200">{previewContent.title}</h3>
+            {previewContent.description && (
+              <p className="text-sm mt-1 text-center" style={{ color: "var(--muted)" }}>
+                {previewContent.description}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
