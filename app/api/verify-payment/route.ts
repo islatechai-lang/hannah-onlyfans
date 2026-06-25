@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No screenshot URL" }, { status: 400 });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
 
     const gcashNumber = process.env.NEXT_PUBLIC_GCASH_NUMBER ?? "";
     const price = process.env.NEXT_PUBLIC_PRICE ?? "299";

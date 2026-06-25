@@ -1,46 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Check if the user is authenticated
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    // Check if the user is accessing their own data
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
-    // Admin helper check
-    // REPLACE "your-admin-email@gmail.com" with your actual Google email address.
-    // By default, we temporarily allow any authenticated user to perform admin operations (like uploading content)
-    // so you can use the panel immediately. For production, remove "|| true" to secure it.
-    function isAdmin() {
-      return isAuthenticated() && (
-        request.auth.token.email == "your-admin-email@gmail.com" ||
-        true
-      );
-    }
-
-    // Users Profiles
-    match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow write: if isOwner(userId) || isAdmin();
-    }
-
-    // Payments Records
-    match /payments/{paymentId} {
-      allow create: if isAuthenticated();
-      // Allow read if user is admin, or if they own this payment submission
-      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
-      allow update, delete: if isAdmin();
-    }
-
-    // Premium Content Metadata
-    match /content/{contentId} {
-      allow read: if true; // Anyone can read titles/thumbnails (they get blurred client-side if locked)
-      allow write, delete: if isAdmin();
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
