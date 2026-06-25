@@ -31,8 +31,8 @@ export default function PaymentModal({
   } | null>(null);
 
   const gcashNumber =
-    process.env.NEXT_PUBLIC_GCASH_NUMBER ?? "09XX-XXX-XXXX";
-  const gcashName = process.env.NEXT_PUBLIC_GCASH_NAME ?? "Hannah";
+    process.env.NEXT_PUBLIC_GCASH_NUMBER ?? "09454320799";
+  const gcashName = process.env.NEXT_PUBLIC_GCASH_NAME ?? "AL****H M** G.";
   const price = process.env.NEXT_PUBLIC_PRICE ?? "299";
 
   const handleUploadComplete = async (url: string) => {
