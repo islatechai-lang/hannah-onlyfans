@@ -12,12 +12,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Hannah's World — Exclusive Content",
+  title: "Hannah OnlyFans — Exclusive Content",
   description:
-    "Join Hannah's exclusive world. Premium content, lifetime access, one payment. ₱299 only.",
-  keywords: ["exclusive content", "premium", "hannah", "lifetime access"],
+    "Join Hannah's exclusive OnlyFans. Premium content, lifetime access, one payment. ₱299 only.",
+  keywords: ["exclusive content", "premium", "hannah", "lifetime access", "onlyfans"],
   openGraph: {
-    title: "Hannah's World — Exclusive Content",
+    title: "Hannah OnlyFans — Exclusive Content",
     description: "Premium exclusive content. Lifetime access for ₱299.",
     type: "website",
   },

@@ -5,10 +5,12 @@ import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const { user, profile, signOutUser } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <nav
@@ -26,9 +28,9 @@ export default function Navbar() {
             className="text-2xl font-black gradient-text tracking-tight"
             style={{ letterSpacing: "-0.02em" }}
           >
-            Hannah&apos;s World
+            Hannah OnlyFans
           </span>
-          <span className="text-red-400 text-xl">🔥</span>
+          <span className="text-rose-400 text-xl">💦</span>
         </Link>
 
         {/* Desktop nav */}
@@ -48,9 +50,11 @@ export default function Navbar() {
 
           {user ? (
             <div className="flex items-center gap-3">
-              <Link href="/dashboard" className="btn-red text-sm py-2 px-4">
-                Dashboard
-              </Link>
+              {pathname !== "/dashboard" && (
+                <Link href="/dashboard" className="btn-red text-sm py-2 px-4">
+                  Dashboard
+                </Link>
+              )}
               <button
                 onClick={() => signOutUser()}
                 className="btn-ghost text-sm py-2 px-4"
@@ -121,13 +125,15 @@ export default function Navbar() {
               </Link>
               {user ? (
                 <>
-                  <Link
-                    href="/dashboard"
-                    className="btn-red text-center"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
+                  {pathname !== "/dashboard" && (
+                    <Link
+                      href="/dashboard"
+                      className="btn-red text-center"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                  )}
                   <button onClick={() => signOutUser()} className="btn-ghost">
                     Sign Out
                   </button>

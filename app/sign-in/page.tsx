@@ -39,10 +39,10 @@ export default function SignInPage() {
       >
         <div className="glass p-8 sm:p-10 text-center glow-border" style={{ borderRadius: 24 }}>
           {/* Logo */}
-          <div className="text-5xl mb-4">🔥</div>
+          <div className="text-5xl mb-4">💦</div>
           <h1 className="text-3xl font-black mb-2">
             Welcome to{" "}
-            <span className="gradient-text">Hannah&apos;s World</span>
+            <span className="gradient-text">Hannah OnlyFans</span>
           </h1>
           <p className="text-sm mb-8" style={{ color: "var(--muted)" }}>
             Sign in to unlock exclusive content

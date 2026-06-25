@@ -262,7 +262,7 @@ export default function LandingSections() {
           color: "var(--muted)",
         }}
       >
-        <p>© {new Date().getFullYear()} Hannah&apos;s World. All rights reserved. 🔥</p>
+        <p>© {new Date().getFullYear()} Hannah OnlyFans. All rights reserved. 💦</p>
         <p className="mt-1 text-xs">18+ only. By signing up you confirm you are of legal age.</p>
       </footer>
     </>

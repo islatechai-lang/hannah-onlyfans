@@ -38,6 +38,7 @@ export default function AdminPage() {
   const [isLocked, setIsLocked] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [previewContent, setPreviewContent] = useState<Content | null>(null);
+  const [activeFilter, setActiveFilter] = useState<"all" | "image" | "video">("all");
 
   const handleLogin = async () => {
     setAuthError("");
@@ -185,7 +186,7 @@ export default function AdminPage() {
         }}
       >
         <span className="font-black gradient-text text-lg">
-          🔥 Admin Panel
+          💦 Admin Panel
         </span>
         <div className="flex gap-1 sm:gap-2">
           {tabs.map((t) => (
@@ -595,9 +596,33 @@ export default function AdminPage() {
                 </button>
               </div>
 
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <h3 className="font-bold text-rose-300">
+                  Uploaded Contents ({content.filter(c => activeFilter === "all" || c.type === activeFilter).length})
+                </h3>
+                {/* Filter Tabs */}
+                <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/5 w-fit">
+                  {(["all", "image", "video"] as const).map((filter) => (
+                    <button
+                      key={filter}
+                      onClick={() => setActiveFilter(filter)}
+                      className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all uppercase cursor-pointer"
+                      style={{
+                        background: activeFilter === filter ? "rgba(225, 29, 72, 0.2)" : "transparent",
+                        borderColor: activeFilter === filter ? "rgba(225, 29, 72, 0.3)" : "transparent",
+                        borderWidth: 1,
+                        color: activeFilter === filter ? "var(--red-light)" : "rgba(244, 63, 94, 0.6)",
+                      }}
+                    >
+                      {filter === "all" ? "💦 All" : filter === "image" ? "📸 Photos" : "🎬 Videos"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Content grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {content.map((c) => (
+                {content.filter(c => activeFilter === "all" || c.type === activeFilter).map((c) => (
                   <div
                     key={c.id}
                     className="relative group glass overflow-hidden"
@@ -651,11 +676,11 @@ export default function AdminPage() {
                   </div>
                 ))}
 
-                {content.length === 0 && (
+                {content.filter(c => activeFilter === "all" || c.type === activeFilter).length === 0 && (
                   <div className="glass col-span-full p-12 text-center">
                     <p className="text-4xl mb-3">📸</p>
                     <p style={{ color: "var(--muted)" }}>
-                      No content uploaded yet
+                      No {activeFilter === "all" ? "" : activeFilter + "s"} found
                     </p>
                   </div>
                 )}

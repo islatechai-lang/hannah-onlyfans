@@ -23,7 +23,7 @@ export default function DashboardPage() {
   if (loading || !user || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center animated-bg">
-        <div className="text-rose-500 animate-pulse text-2xl">Loading... 🔥</div>
+        <div className="text-rose-500 animate-pulse text-2xl">Loading... 💦</div>
       </div>
     );
   }
@@ -64,9 +64,6 @@ export default function DashboardPage() {
             ) : (
               <span className="badge-red">🔒 Locked</span>
             )}
-            <button onClick={() => signOutUser()} className="btn-ghost text-sm py-2 px-4">
-              Sign Out
-            </button>
           </div>
         </motion.div>
 

@@ -99,7 +99,7 @@ export default function PaymentModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.92, y: 20 }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="glass glow-border w-full max-w-md p-8 relative"
+          className="glass glow-border w-full max-w-md p-6 sm:p-8 relative"
           style={{ borderRadius: 24 }}
         >
           <button

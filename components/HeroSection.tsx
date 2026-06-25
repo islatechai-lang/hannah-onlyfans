@@ -45,7 +45,7 @@ export default function HeroSection() {
           variants={fadeUp}
           className="flex justify-center mb-6"
         >
-          <span className="badge-red">🔥 Limited Time — ₱299 Lifetime</span>
+          <span className="badge-red">💦 Limited Time — ₱299 Lifetime</span>
         </motion.div>
 
         {/* Headline */}
@@ -57,9 +57,9 @@ export default function HeroSection() {
           className="text-5xl sm:text-7xl font-black mb-6 leading-none tracking-tight"
         >
           Unlock{" "}
-          <span className="gradient-text glow-text">Hannah&apos;s</span>
+          <span className="gradient-text glow-text">Hannah OnlyFans</span>
           <br />
-          Exclusive World
+          Exclusive Access
         </motion.h1>
 
         {/* Sub */}
@@ -85,7 +85,7 @@ export default function HeroSection() {
         >
           {user ? (
             <Link href="/dashboard" className="btn-red text-lg px-8 py-4">
-              Go to Dashboard 🔥
+              Go to Dashboard 💦
             </Link>
           ) : (
             <Link href="/sign-in" className="btn-red text-lg px-8 py-4">

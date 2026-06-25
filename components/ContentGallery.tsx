@@ -70,7 +70,7 @@ export default function ContentGallery({ hasAccess, onUnlock }: Props) {
                   : "text-rose-200/50 hover:text-rose-200"
               }`}
             >
-              {filter === "all" ? "🔥 All" : filter === "image" ? "📸 Photos" : "🎬 Videos"}
+              {filter === "all" ? "💦 All" : filter === "image" ? "📸 Photos" : "🎬 Videos"}
             </button>
           ))}
         </div>
