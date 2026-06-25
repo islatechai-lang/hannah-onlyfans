@@ -556,16 +556,21 @@ export default function AdminPage() {
                   </label>
                 </div>
 
-                {/* UploadThing button */}
-                <div
-                  className="border-2 border-dashed rounded-xl p-6 mb-4 text-center"
-                  style={{ borderColor: "rgba(225,29,72,0.25)" }}
-                >
+                {/* UploadThing dropzone */}
+                <div className="mb-4">
                   {newUrl ? (
-                    <div>
+                    <div
+                      className="border-2 border-dashed rounded-xl p-6 text-center"
+                      style={{ borderColor: "rgba(16,185,129,0.3)", background: "rgba(16,185,129,0.03)" }}
+                    >
                       <p className="text-green-400 font-semibold mb-2">
                         ✓ File uploaded!
                       </p>
+                      {newType === "image" ? (
+                        <img src={newUrl} alt="Preview" className="max-h-32 mx-auto rounded-lg mb-2" />
+                      ) : (
+                        <video src={newUrl} className="max-h-32 mx-auto rounded-lg mb-2" muted playsInline />
+                      )}
                       <p
                         className="text-xs break-all"
                         style={{ color: "var(--muted)" }}
@@ -574,19 +579,14 @@ export default function AdminPage() {
                       </p>
                       <button
                         onClick={() => setNewUrl("")}
-                        className="text-rose-400 text-xs mt-2"
+                        className="text-rose-400 text-xs mt-2 cursor-pointer"
                       >
-                        Remove
+                        Remove & re-upload
                       </button>
                     </div>
-                  ) : (
-                    <UploadDropzone<
-                      OurFileRouter,
-                      "contentImage" | "contentVideo"
-                    >
-                      endpoint={
-                        newType === "image" ? "contentImage" : "contentVideo"
-                      }
+                  ) : newType === "image" ? (
+                    <UploadDropzone<OurFileRouter, "contentImage">
+                      endpoint="contentImage"
                       onClientUploadComplete={(res) => {
                         const url = res?.[0]?.ufsUrl || res?.[0]?.url;
                         if (url) setNewUrl(url);
@@ -600,11 +600,7 @@ export default function AdminPage() {
                           padding: "24px 16px",
                           cursor: "pointer",
                         },
-                        label: {
-                          color: "var(--text)",
-                          fontWeight: "600",
-                          fontSize: "14px",
-                        },
+                        label: { color: "var(--text)", fontWeight: "600", fontSize: "14px" },
                         button: {
                           background: "linear-gradient(135deg, #e11d48, #f43f5e)",
                           borderRadius: "10px",
@@ -612,10 +608,34 @@ export default function AdminPage() {
                           padding: "8px 20px",
                           fontSize: "14px",
                         },
-                        allowedContent: {
-                          color: "var(--muted)",
-                          fontSize: "11px",
+                        allowedContent: { color: "var(--muted)", fontSize: "11px" },
+                      }}
+                    />
+                  ) : (
+                    <UploadDropzone<OurFileRouter, "contentVideo">
+                      endpoint="contentVideo"
+                      onClientUploadComplete={(res) => {
+                        const url = res?.[0]?.ufsUrl || res?.[0]?.url;
+                        if (url) setNewUrl(url);
+                      }}
+                      onUploadError={(err) => alert("Upload error: " + err.message)}
+                      appearance={{
+                        container: {
+                          border: "2px dashed rgba(225,29,72,0.3)",
+                          background: "rgba(225,29,72,0.02)",
+                          borderRadius: "16px",
+                          padding: "24px 16px",
+                          cursor: "pointer",
                         },
+                        label: { color: "var(--text)", fontWeight: "600", fontSize: "14px" },
+                        button: {
+                          background: "linear-gradient(135deg, #e11d48, #f43f5e)",
+                          borderRadius: "10px",
+                          fontWeight: "600",
+                          padding: "8px 20px",
+                          fontSize: "14px",
+                        },
+                        allowedContent: { color: "var(--muted)", fontSize: "11px" },
                       }}
                     />
                   )}
