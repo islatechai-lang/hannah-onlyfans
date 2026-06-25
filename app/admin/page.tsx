@@ -15,7 +15,7 @@ import {
   type UserProfile,
   type Content,
 } from "@/lib/firestore";
-import { UploadButton } from "@uploadthing/react";
+import { UploadDropzone } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/api/uploadthing/core";
 
 type Tab = "overview" | "payments" | "users" | "content";
@@ -580,7 +580,7 @@ export default function AdminPage() {
                       </button>
                     </div>
                   ) : (
-                    <UploadButton<
+                    <UploadDropzone<
                       OurFileRouter,
                       "contentImage" | "contentVideo"
                     >
@@ -593,14 +593,28 @@ export default function AdminPage() {
                       }}
                       onUploadError={(err) => alert("Upload error: " + err.message)}
                       appearance={{
+                        container: {
+                          border: "2px dashed rgba(225,29,72,0.3)",
+                          background: "rgba(225,29,72,0.02)",
+                          borderRadius: "16px",
+                          padding: "24px 16px",
+                          cursor: "pointer",
+                        },
+                        label: {
+                          color: "var(--text)",
+                          fontWeight: "600",
+                          fontSize: "14px",
+                        },
                         button: {
                           background: "linear-gradient(135deg, #e11d48, #f43f5e)",
                           borderRadius: "10px",
                           fontWeight: "600",
+                          padding: "8px 20px",
+                          fontSize: "14px",
                         },
                         allowedContent: {
                           color: "var(--muted)",
-                          fontSize: "12px",
+                          fontSize: "11px",
                         },
                       }}
                     />

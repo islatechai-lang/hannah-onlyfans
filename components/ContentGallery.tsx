@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { getAllContent, type Content } from "@/lib/firestore";
 import { motion } from "framer-motion";
-import Image from "next/image";
 
 interface Props {
   hasAccess: boolean;
@@ -89,11 +88,10 @@ export default function ContentGallery({ hasAccess, onUnlock }: Props) {
           >
             {/* Content preview */}
             {item.type === "image" ? (
-              <Image
+              <img
                 src={item.url}
                 alt={item.title}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                 style={{
                   filter:
                     item.isLocked && !hasAccess ? "blur(24px) brightness(0.4)" : "none",

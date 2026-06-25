@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { UploadButton } from "@uploadthing/react";
+import { UploadDropzone } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/api/uploadthing/core";
 import { submitPayment, grantAccess } from "@/lib/firestore";
 
@@ -202,11 +202,8 @@ export default function PaymentModal({
                 Upload your GCash payment confirmation screenshot
               </p>
 
-              <div
-                className="border-2 border-dashed rounded-xl p-8 text-center mb-4"
-                style={{ borderColor: "rgba(225,29,72,0.3)" }}
-              >
-                <UploadButton<OurFileRouter, "paymentScreenshot">
+              <div className="mb-4">
+                <UploadDropzone<OurFileRouter, "paymentScreenshot">
                   endpoint="paymentScreenshot"
                   onClientUploadComplete={(res) => {
                     const url = res?.[0]?.ufsUrl || res?.[0]?.url;
@@ -218,14 +215,29 @@ export default function PaymentModal({
                     alert("Upload failed: " + err.message);
                   }}
                   appearance={{
+                    container: {
+                      border: "2px dashed rgba(225,29,72,0.3)",
+                      background: "rgba(225,29,72,0.02)",
+                      borderRadius: "16px",
+                      padding: "24px 16px",
+                      cursor: "pointer",
+                    },
+                    label: {
+                      color: "var(--text)",
+                      fontWeight: "600",
+                      fontSize: "14px",
+                    },
                     button: {
                       background: "linear-gradient(135deg, #e11d48, #f43f5e)",
                       borderRadius: "10px",
                       fontWeight: "600",
-                      padding: "10px 24px",
+                      padding: "8px 20px",
+                      fontSize: "14px",
                     },
-                    container: { flexDirection: "column", gap: "8px" },
-                    allowedContent: { color: "var(--muted)", fontSize: "12px" },
+                    allowedContent: {
+                      color: "var(--muted)",
+                      fontSize: "11px",
+                    },
                   }}
                 />
               </div>
