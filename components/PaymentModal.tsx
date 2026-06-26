@@ -224,9 +224,9 @@ export default function PaymentModal({
           {step === "verifying" && (
             <div className="text-center py-8">
               <div className="text-5xl mb-6 animate-spin">⚡</div>
-              <h2 className="text-2xl font-black mb-3">Verifying Payment</h2>
+              <h2 className="text-2xl font-black mb-3">Reviewing Payment</h2>
               <p style={{ color: "var(--muted)" }}>
-                Our AI is analyzing your screenshot...
+                Please wait while we review your payment...
               </p>
               <div className="mt-6 flex justify-center gap-1">
                 {[0, 1, 2].map((i) => (

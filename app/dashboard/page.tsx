@@ -16,7 +16,7 @@ export default function DashboardPage() {
 
   const getExpiryText = () => {
     if (!profile || !profile.accessExpiresAt) {
-      return "Enjoy all exclusive content. 7 days access.";
+      return "Enjoy all exclusive content. 8 days access.";
     }
     const date = typeof profile.accessExpiresAt.toDate === "function"
       ? profile.accessExpiresAt.toDate()

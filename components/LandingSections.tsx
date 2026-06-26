@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 const features = [
   "Exclusive photos & videos 📸",
   "New content added regularly 🔥",
-  "7 days access, no subscription 💎",
+  "8 days access, no subscription 💎",
   "Private members-only feed 🔞",
   "Behind-the-scenes content 🎬",
   "Direct vibe with Hannah 💌",
@@ -105,7 +105,7 @@ export default function LandingSections() {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-4xl sm:text-5xl font-black mb-4">
-              One price. <span className="gradient-text">7 Days Access.</span>
+              One price. <span className="gradient-text">8 Days Access.</span>
             </h2>
             <p className="mb-10" style={{ color: "var(--muted)" }}>
               No tricks, no subscriptions.
@@ -131,7 +131,7 @@ export default function LandingSections() {
                 ₱280
               </div>
               <div className="text-sm mb-8" style={{ color: "var(--muted)" }}>
-                One-time payment · 7 days access
+                One-time payment · 8 days access
               </div>
 
               <ul className="text-left space-y-3 mb-8">
@@ -246,7 +246,7 @@ export default function LandingSections() {
             <span className="gradient-text">everything?</span>
           </h2>
           <p className="mb-8 text-lg" style={{ color: "var(--muted)" }}>
-            Join hundreds of members. ₱280 one-time. 7 days access.
+            Join hundreds of members. ₱280 one-time. 8 days access.
           </p>
           <Link href="/sign-in" className="btn-red text-xl px-10 py-5">
             Get Access Now 💋

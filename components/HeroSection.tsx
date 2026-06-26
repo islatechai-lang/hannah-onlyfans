@@ -45,7 +45,7 @@ export default function HeroSection() {
           variants={fadeUp}
           className="flex justify-center mb-6"
         >
-          <span className="badge-red">💦 Limited Time — ₱280 for 7 Days</span>
+          <span className="badge-red">💦 Limited Time — ₱280 for 8 Days</span>
         </motion.div>
 
         {/* Headline */}
@@ -71,7 +71,7 @@ export default function HeroSection() {
           className="text-lg sm:text-xl mb-10 max-w-2xl mx-auto leading-relaxed"
           style={{ color: "var(--muted)" }}
         >
-          Premium photos, videos, and exclusive content. 7 days
+          Premium photos, videos, and exclusive content. 8 days
           access. No subscriptions, no BS.
         </motion.p>
 
@@ -106,7 +106,7 @@ export default function HeroSection() {
           className="mt-14 flex flex-wrap justify-center gap-6"
         >
           {[
-            { icon: "📅", label: "7 Days Access" },
+            { icon: "📅", label: "8 Days Access" },
             { icon: "💳", label: "GCash Payment" },
             { icon: "⚡", label: "Instant Verify" },
             { icon: "🔞", label: "18+ Only" },

@@ -70,7 +70,7 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 
 export async function grantAccess(uid: string) {
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7);
+  expiresAt.setDate(expiresAt.getDate() + 8);
   await updateDoc(doc(db, "users", uid), {
     hasAccess: true,
     accessExpiresAt: Timestamp.fromDate(expiresAt),
