@@ -1,8 +1,6 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getAllContent, type Content } from "@/lib/firestore";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
   hasAccess: boolean;
@@ -16,6 +14,18 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
   const [activeFilter, setActiveFilter] = useState<"image" | "video">("image");
   const [selectedItem, setSelectedItem] = useState<Content | null>(null);
   const [isPageFocused, setIsPageFocused] = useState(true);
+  
+  // Image zoom state
+  const [zoomScale, setZoomScale] = useState(1);
+  
+  // Custom video player states
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     getAllContent()
@@ -53,19 +63,155 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("contextmenu", preventDefault);
     window.addEventListener("keydown", handleKeyDown);
-
     return () => {
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("blur", handleBlur);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("contextmenu", preventDefault);
-      window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
   const filteredContent = content.filter(
     (item) => item.type === activeFilter
   );
+
+  const navigateItem = (direction: "prev" | "next") => {
+    if (!selectedItem) return;
+    const currentIndex = filteredContent.findIndex((item) => item.id === selectedItem.id);
+    if (currentIndex === -1) return;
+
+    let newIndex = currentIndex;
+    if (direction === "prev") {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : filteredContent.length - 1;
+    } else {
+      newIndex = currentIndex < filteredContent.length - 1 ? currentIndex + 1 : 0;
+    }
+
+    setZoomScale(1);
+    setIsPlaying(true);
+    setCurrentTime(0);
+    setSelectedItem(filteredContent[newIndex]);
+  };
+
+  useEffect(() => {
+    if (!selectedItem) return;
+
+    const handleGalleryKeys = (e: KeyboardEvent) => {
+      if (selectedItem.type === "image") {
+        if (e.key === "ArrowLeft") {
+          navigateItem("prev");
+        } else if (e.key === "ArrowRight") {
+          navigateItem("next");
+        }
+      } else if (selectedItem.type === "video") {
+        if (e.key === "ArrowUp") {
+          e.preventDefault();
+          navigateItem("prev");
+        } else if (e.key === "ArrowDown") {
+          e.preventDefault();
+          navigateItem("next");
+        }
+      }
+      if (e.key === "Escape") {
+        setSelectedItem(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleGalleryKeys);
+    return () => {
+      window.removeEventListener("keydown", handleGalleryKeys);
+    };
+  }, [selectedItem, filteredContent]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const handleZoom = (type: "in" | "out") => {
+    setZoomScale((prev) => {
+      const step = 0.25;
+      const nextScale = type === "in" ? prev + step : prev - step;
+      return Math.min(Math.max(nextScale, 1), 3);
+    });
+  };
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play().catch(() => {});
+      setIsPlaying(true);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (!videoRef.current) return;
+    setCurrentTime(videoRef.current.currentTime);
+  };
+
+  const handleLoadedMetadata = () => {
+    if (!videoRef.current) return;
+    setDuration(videoRef.current.duration);
+  };
+
+  const handleSeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!videoRef.current) return;
+    const time = parseFloat(e.target.value);
+    videoRef.current.currentTime = time;
+    setCurrentTime(time);
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!videoRef.current) return;
+    const vol = parseFloat(e.target.value);
+    videoRef.current.volume = vol;
+    setVolume(vol);
+    setIsMuted(vol === 0);
+  };
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    const nextMuted = !isMuted;
+    videoRef.current.muted = nextMuted;
+    setIsMuted(nextMuted);
+    if (!nextMuted && volume === 0) {
+      videoRef.current.volume = 0.5;
+      setVolume(0.5);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (!videoRef.current) return;
+    const playerContainer = videoRef.current.parentElement;
+    if (!playerContainer) return;
+
+    if (!document.fullscreenElement) {
+      playerContainer.requestFullscreen().then(() => {
+        setIsFullscreen(true);
+      }).catch(console.error);
+    } else {
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false);
+      }).catch(console.error);
+    }
+  };
+
+  const formatTime = (time: number) => {
+    if (isNaN(time)) return "0:00";
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
+
+
 
   if (loading) {
     return (
@@ -228,15 +374,15 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
               </div>
             )}
 
-            {/* Info bar on hover (unlocked) */}
+            {/* Info bar (always visible) */}
             {(!item.isLocked || hasAccess) && (
               <div
-                className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                className="absolute bottom-0 left-0 right-0 p-2 z-20"
                 style={{
-                  background: "linear-gradient(transparent, rgba(10,3,5,0.9))",
+                  background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)",
                 }}
               >
-                <p className="text-xs font-medium truncate">{item.title}</p>
+                <p className="text-xs font-bold text-white truncate">{item.title}</p>
               </div>
             )}
 
@@ -255,65 +401,225 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
       {/* Lightbox Modal */}
       {selectedItem && (hasAccess || !selectedItem.isLocked) && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md"
           onClick={() => setSelectedItem(null)}
         >
+          {/* Close button */}
           <button
-            className="absolute top-4 right-4 text-white text-3xl font-bold z-50 hover:text-rose-400 cursor-pointer"
+            className="absolute top-4 right-4 text-white hover:text-rose-400 text-3xl font-black z-50 transition-colors cursor-pointer"
             onClick={() => setSelectedItem(null)}
           >
             ✕
           </button>
+
+          {/* Left Arrow (Prev - Image Mode only) */}
+          {selectedItem.type === "image" && filteredContent.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateItem("prev");
+              }}
+              className="absolute left-6 top-1/2 -translate-y-1/2 text-white hover:text-rose-400 text-4xl font-black z-40 bg-black/40 hover:bg-black/60 w-14 h-14 rounded-full flex items-center justify-center transition-all cursor-pointer select-none"
+            >
+              ‹
+            </button>
+          )}
+
+          {/* Right Arrow (Next - Image Mode only) */}
+          {selectedItem.type === "image" && filteredContent.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateItem("next");
+              }}
+              className="absolute right-6 top-1/2 -translate-y-1/2 text-white hover:text-rose-400 text-4xl font-black z-40 bg-black/40 hover:bg-black/60 w-14 h-14 rounded-full flex items-center justify-center transition-all cursor-pointer select-none"
+            >
+              ›
+            </button>
+          )}
+
+          {/* Up Arrow (Prev - Video Mode only - Reels style) */}
+          {selectedItem.type === "video" && filteredContent.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateItem("prev");
+              }}
+              className="absolute top-6 left-1/2 -translate-x-1/2 text-white hover:text-rose-400 text-2xl font-black z-40 bg-black/40 hover:bg-black/60 w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer select-none"
+              title="Previous Video"
+            >
+              ▲
+            </button>
+          )}
+
+          {/* Down Arrow (Next - Video Mode only - Reels style) */}
+          {selectedItem.type === "video" && filteredContent.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateItem("next");
+              }}
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white hover:text-rose-400 text-2xl font-black z-40 bg-black/40 hover:bg-black/60 w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer select-none animate-bounce"
+              title="Next Video"
+            >
+              ▼
+            </button>
+          )}
           
           <div
             className="relative max-w-4xl max-h-[85vh] w-full h-full flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
             {selectedItem.type === "image" ? (
-              <div className="relative w-fit h-fit flex items-center justify-center">
-                <img
-                  src={selectedItem.url}
-                  alt={selectedItem.title}
-                  className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
-                  onContextMenu={(e) => e.preventDefault()}
-                  onDragStart={(e) => e.preventDefault()}
-                />
-                {/* Transparent protection overlay */}
-                <div
-                  className="absolute inset-0 z-10 select-none cursor-default"
-                  onContextMenu={(e) => e.preventDefault()}
-                  onDragStart={(e) => e.preventDefault()}
-                />
-                
-                {/* Watermark overlay */}
-                {userEmail && (
-                  <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
-                    <div className="text-xs sm:text-sm font-mono text-white/8 rotate-[-25deg] select-none whitespace-nowrap uppercase tracking-widest">
-                      {userEmail} • Hannah OnlyFans
+              <div className="relative w-fit h-fit flex flex-col items-center justify-center">
+                {/* Zoom controls header */}
+                <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex gap-3 z-50 bg-black/60 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10 select-none">
+                  <button
+                    onClick={() => handleZoom("out")}
+                    disabled={zoomScale <= 1}
+                    className="text-white hover:text-rose-400 disabled:opacity-30 disabled:hover:text-white transition-colors text-sm font-bold cursor-pointer"
+                  >
+                    ➖ Zoom Out
+                  </button>
+                  <span className="text-white/60 text-xs font-mono self-center">
+                    {Math.round(zoomScale * 100)}%
+                  </span>
+                  <button
+                    onClick={() => handleZoom("in")}
+                    disabled={zoomScale >= 3}
+                    className="text-white hover:text-rose-400 disabled:opacity-30 disabled:hover:text-white transition-colors text-sm font-bold cursor-pointer"
+                  >
+                    ➕ Zoom In
+                  </button>
+                </div>
+
+                <div className="relative overflow-hidden rounded-lg">
+                  <img
+                    src={selectedItem.url}
+                    alt={selectedItem.title}
+                    className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl transition-transform duration-250 ease-out"
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                    style={{ transform: `scale(${zoomScale})` }}
+                  />
+                  {/* Transparent protection overlay */}
+                  <div
+                    className="absolute inset-0 z-10 select-none cursor-default"
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                  />
+                  
+                  {/* Watermark overlay */}
+                  {userEmail && (
+                    <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
+                      <div className="text-xs sm:text-sm font-mono text-white/5 rotate-[-25deg] select-none whitespace-nowrap uppercase tracking-widest">
+                        {userEmail} • Hannah OnlyFans
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                <div className="mt-4 text-center select-none bg-black/50 py-1.5 px-4 rounded-full border border-white/5 backdrop-blur-sm">
+                  <p className="text-white text-sm font-bold">{selectedItem.title}</p>
+                </div>
               </div>
             ) : (
-              <div className="relative w-full max-w-2xl h-fit flex items-center justify-center">
+              <div 
+                className="relative w-full max-w-2xl h-fit flex items-center justify-center bg-black rounded-xl overflow-hidden group/player shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <video
+                  ref={videoRef}
                   src={selectedItem.url}
-                  controls
-                  autoPlay
-                  controlsList="nodownload"
-                  disablePictureInPicture
-                  className="w-full max-h-[80vh] rounded-lg shadow-2xl"
+                  autoPlay={isPlaying}
+                  onTimeUpdate={handleTimeUpdate}
+                  onLoadedMetadata={handleLoadedMetadata}
+                  onClick={togglePlay}
+                  onContextMenu={(e) => e.preventDefault()}
+                  onDragStart={(e) => e.preventDefault()}
+                  className="w-full max-h-[75vh] object-contain rounded-lg"
+                />
+
+                {/* Transparent protection overlay & click toggle play */}
+                <div
+                  className="absolute inset-0 z-10 select-none cursor-pointer"
+                  onClick={togglePlay}
                   onContextMenu={(e) => e.preventDefault()}
                   onDragStart={(e) => e.preventDefault()}
                 />
+
                 {/* Watermark overlay */}
                 {userEmail && (
                   <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
-                    <div className="text-xs sm:text-sm font-mono text-white/8 rotate-[-25deg] select-none whitespace-nowrap uppercase tracking-widest">
+                    <div className="text-xs sm:text-sm font-mono text-white/5 rotate-[-25deg] select-none whitespace-nowrap uppercase tracking-widest">
                       {userEmail} • Hannah OnlyFans
                     </div>
                   </div>
                 )}
+
+                {/* Custom Video Control Overlay */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col gap-2 transition-opacity duration-300 opacity-0 group-hover/player:opacity-100 z-30"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Progress bar */}
+                  <div className="flex items-center gap-2 w-full">
+                    <input
+                      type="range"
+                      min={0}
+                      max={duration || 100}
+                      value={currentTime}
+                      onChange={handleSeekChange}
+                      className="w-full accent-rose-500 bg-white/20 h-1.5 rounded-lg appearance-none cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-white text-sm mt-1">
+                    <div className="flex items-center gap-4">
+                      {/* Play/Pause */}
+                      <button
+                        onClick={togglePlay}
+                        className="hover:text-rose-400 font-bold transition-colors cursor-pointer text-sm"
+                      >
+                        {isPlaying ? "⏸ Pause" : "▶ Play"}
+                      </button>
+
+                      {/* Time display */}
+                      <span className="text-xs font-mono">
+                        {formatTime(currentTime)} / {formatTime(duration)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      {/* Volume controls */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={toggleMute}
+                          className="hover:text-rose-400 text-sm transition-colors cursor-pointer"
+                        >
+                          {isMuted ? "🔇" : "🔊"}
+                        </button>
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.1}
+                          value={isMuted ? 0 : volume}
+                          onChange={handleVolumeChange}
+                          className="w-16 accent-rose-500 bg-white/20 h-1 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Fullscreen */}
+                      <button
+                        onClick={toggleFullscreen}
+                        className="hover:text-rose-400 text-xs transition-colors cursor-pointer"
+                      >
+                        {isFullscreen ? "🗖 Small" : "🗖 Full"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
