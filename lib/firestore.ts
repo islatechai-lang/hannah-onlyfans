@@ -183,3 +183,8 @@ export async function deleteContent(id: string) {
   const { deleteDoc } = await import("firebase/firestore");
   await deleteDoc(doc(db, "content", id));
 }
+
+export async function deletePayment(id: string) {
+  const { deleteDoc } = await import("firebase/firestore");
+  await deleteDoc(doc(db, "payments", id));
+}

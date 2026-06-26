@@ -117,7 +117,7 @@ export default function PaymentModal({
                 Payment Instructions
               </h2>
               <p className="text-center text-sm mb-6" style={{ color: "var(--muted)" }}>
-                Follow these steps to unlock 7-day access
+                Follow these steps to unlock 8-day access
               </p>
 
               <ol className="space-y-4 mb-8">
@@ -258,7 +258,7 @@ export default function PaymentModal({
                 Access Granted!
               </h2>
               <p style={{ color: "var(--muted)" }}>
-                Payment verified ✓ You now have 7-day access. Redirecting...
+                Payment verified ✓ You now have 8-day access. Redirecting...
               </p>
             </div>
           )}

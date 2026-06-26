@@ -11,6 +11,7 @@ import {
   revokeAccess,
   addContent,
   deleteContent,
+  deletePayment,
   type Payment,
   type UserProfile,
   type Content,
@@ -113,6 +114,12 @@ export default function AdminPage() {
   const handleDeleteContent = async (id: string) => {
     if (!confirm("Delete this content?")) return;
     await deleteContent(id);
+    await loadData();
+  };
+
+  const handleDeletePayment = async (id: string) => {
+    if (!confirm("Remove this payment from the list?")) return;
+    await deletePayment(id);
     await loadData();
   };
 
@@ -419,6 +426,18 @@ export default function AdminPage() {
                             Re-approve
                           </button>
                         )}
+                        <button
+                          onClick={() => handleDeletePayment(p.id)}
+                          className="text-xs py-1.5 px-3 rounded-lg border transition-colors cursor-pointer"
+                          style={{
+                            borderColor: "rgba(255,255,255,0.1)",
+                            color: "rgba(255,255,255,0.4)",
+                            background: "rgba(255,255,255,0.03)",
+                          }}
+                          title="Remove from list"
+                        >
+                          🗑️
+                        </button>
                       </div>
                     </div>
                   </div>
