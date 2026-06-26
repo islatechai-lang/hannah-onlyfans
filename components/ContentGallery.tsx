@@ -15,8 +15,11 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
   const [selectedItem, setSelectedItem] = useState<Content | null>(null);
   const [isPageFocused, setIsPageFocused] = useState(true);
   
-  // Image zoom state
+  // Image zoom & pan state
   const [zoomScale, setZoomScale] = useState(1);
+  const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   
   // Custom video player states
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -124,6 +127,17 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
   }, [selectedItem, filteredContent]);
 
   useEffect(() => {
+    if (zoomScale === 1) {
+      setPanPosition({ x: 0, y: 0 });
+    }
+  }, [zoomScale]);
+
+  useEffect(() => {
+    setZoomScale(1);
+    setPanPosition({ x: 0, y: 0 });
+  }, [selectedItem]);
+
+  useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
@@ -139,6 +153,31 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
       const nextScale = type === "in" ? prev + step : prev - step;
       return Math.min(Math.max(nextScale, 1), 3);
     });
+  };
+
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    if (zoomScale <= 1) return;
+    setIsDragging(true);
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    setDragStart({
+      x: clientX - panPosition.x,
+      y: clientY - panPosition.y,
+    });
+  };
+
+  const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDragging || zoomScale <= 1) return;
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    setPanPosition({
+      x: clientX - dragStart.x,
+      y: clientY - dragStart.y,
+    });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
   };
 
   const togglePlay = () => {
@@ -472,41 +511,54 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
           >
             {selectedItem.type === "image" ? (
               <div className="relative w-fit h-fit flex flex-col items-center justify-center">
-                {/* Zoom controls header */}
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex gap-3 z-50 bg-black/60 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10 select-none">
-                  <button
-                    onClick={() => handleZoom("out")}
-                    disabled={zoomScale <= 1}
-                    className="text-white hover:text-rose-400 disabled:opacity-30 disabled:hover:text-white transition-colors text-sm font-bold cursor-pointer"
-                  >
-                    ➖ Zoom Out
-                  </button>
-                  <span className="text-white/60 text-xs font-mono self-center">
-                    {Math.round(zoomScale * 100)}%
-                  </span>
-                  <button
-                    onClick={() => handleZoom("in")}
-                    disabled={zoomScale >= 3}
-                    className="text-white hover:text-rose-400 disabled:opacity-30 disabled:hover:text-white transition-colors text-sm font-bold cursor-pointer"
-                  >
-                    ➕ Zoom In
-                  </button>
-                </div>
+                <div className="relative overflow-hidden rounded-lg max-w-full max-h-[75vh] flex items-center justify-center bg-black/40">
+                  {/* Floating zoom pill (small and elegant) */}
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/75 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10 z-40 select-none text-[10px] shadow-lg">
+                    <button
+                      onClick={() => handleZoom("out")}
+                      disabled={zoomScale <= 1}
+                      className="text-white/80 hover:text-rose-400 disabled:opacity-30 disabled:hover:text-white/80 p-0.5 cursor-pointer transition-colors"
+                      title="Zoom Out"
+                    >
+                      ➖
+                    </button>
+                    <span className="text-white/50 font-mono select-none px-0.5">
+                      {Math.round(zoomScale * 100)}%
+                    </span>
+                    <button
+                      onClick={() => handleZoom("in")}
+                      disabled={zoomScale >= 3}
+                      className="text-white/80 hover:text-rose-400 disabled:opacity-30 disabled:hover:text-white/80 p-0.5 cursor-pointer transition-colors"
+                      title="Zoom In"
+                    >
+                      ➕
+                    </button>
+                  </div>
 
-                <div className="relative overflow-hidden rounded-lg">
                   <img
                     src={selectedItem.url}
                     alt={selectedItem.title}
-                    className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl transition-transform duration-250 ease-out"
+                    className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl origin-center"
                     onContextMenu={(e) => e.preventDefault()}
                     onDragStart={(e) => e.preventDefault()}
-                    style={{ transform: `scale(${zoomScale})` }}
+                    style={{
+                      transform: `scale(${zoomScale}) translate(${panPosition.x / zoomScale}px, ${panPosition.y / zoomScale}px)`,
+                      transition: isDragging ? "none" : "transform 0.15s ease-out"
+                    }}
                   />
-                  {/* Transparent protection overlay */}
+                  {/* Transparent protection & drag panning overlay */}
                   <div
-                    className="absolute inset-0 z-10 select-none cursor-default"
+                    className="absolute inset-0 z-10 select-none"
+                    style={{ cursor: zoomScale > 1 ? (isDragging ? "grabbing" : "grab") : "default" }}
                     onContextMenu={(e) => e.preventDefault()}
                     onDragStart={(e) => e.preventDefault()}
+                    onMouseDown={handleDragStart}
+                    onMouseMove={handleDragMove}
+                    onMouseUp={handleDragEnd}
+                    onMouseLeave={handleDragEnd}
+                    onTouchStart={handleDragStart}
+                    onTouchMove={handleDragMove}
+                    onTouchEnd={handleDragEnd}
                   />
                   
                   {/* Watermark overlay */}

@@ -38,7 +38,7 @@ export default function AdminPage() {
   const [isLocked, setIsLocked] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [previewContent, setPreviewContent] = useState<Content | null>(null);
-  const [activeFilter, setActiveFilter] = useState<"all" | "image" | "video">("all");
+  const [activeFilter, setActiveFilter] = useState<"image" | "video">("image");
 
   const handleLogin = async () => {
     setAuthError("");
@@ -605,11 +605,11 @@ export default function AdminPage() {
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <h3 className="font-bold text-rose-300">
-                  Uploaded Contents ({content.filter(c => activeFilter === "all" || c.type === activeFilter).length})
+                  Uploaded Contents ({content.filter(c => c.type === activeFilter).length})
                 </h3>
                 {/* Filter Tabs */}
                 <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/5 w-fit">
-                  {(["all", "image", "video"] as const).map((filter) => (
+                  {(["image", "video"] as const).map((filter) => (
                     <button
                       key={filter}
                       onClick={() => setActiveFilter(filter)}
@@ -621,7 +621,7 @@ export default function AdminPage() {
                         color: activeFilter === filter ? "var(--red-light)" : "rgba(244, 63, 94, 0.6)",
                       }}
                     >
-                      {filter === "all" ? "💦 All" : filter === "image" ? "📸 Photos" : "🎬 Videos"}
+                      {filter === "image" ? "📸 Photos" : "🎬 Videos"}
                     </button>
                   ))}
                 </div>
@@ -629,7 +629,7 @@ export default function AdminPage() {
 
               {/* Content grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {content.filter(c => activeFilter === "all" || c.type === activeFilter).map((c) => (
+                {content.filter(c => c.type === activeFilter).map((c) => (
                   <div
                     key={c.id}
                     className="relative group glass overflow-hidden"
@@ -683,11 +683,11 @@ export default function AdminPage() {
                   </div>
                 ))}
 
-                {content.filter(c => activeFilter === "all" || c.type === activeFilter).length === 0 && (
+                {content.filter(c => c.type === activeFilter).length === 0 && (
                   <div className="glass col-span-full p-12 text-center">
                     <p className="text-4xl mb-3">📸</p>
                     <p style={{ color: "var(--muted)" }}>
-                      No {activeFilter === "all" ? "" : activeFilter + "s"} found
+                      No {activeFilter + "s"} found
                     </p>
                   </div>
                 )}
