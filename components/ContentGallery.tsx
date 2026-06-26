@@ -7,17 +7,59 @@ import { motion } from "framer-motion";
 interface Props {
   hasAccess: boolean;
   onUnlock: () => void;
+  userEmail?: string;
 }
 
-export default function ContentGallery({ hasAccess, onUnlock }: Props) {
+export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props) {
   const [content, setContent] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<"all" | "image" | "video">("all");
+  const [isPageFocused, setIsPageFocused] = useState(true);
 
   useEffect(() => {
     getAllContent()
       .then(setContent)
       .finally(() => setLoading(false));
+
+    // Security listeners
+    const handleFocus = () => setIsPageFocused(true);
+    const handleBlur = () => setIsPageFocused(false);
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setIsPageFocused(false);
+      } else {
+        setIsPageFocused(true);
+      }
+    };
+
+    const preventDefault = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey && (e.key === "s" || e.key === "S" || e.key === "p" || e.key === "P" || e.key === "c" || e.key === "C" || e.key === "u" || e.key === "U")) ||
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && (e.key === "i" || e.key === "I" || e.key === "j" || e.key === "J" || e.key === "c" || e.key === "C"))
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("blur", handleBlur);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("contextmenu", preventDefault);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("blur", handleBlur);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("contextmenu", preventDefault);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   const filteredContent = content.filter(
@@ -52,6 +94,20 @@ export default function ContentGallery({ hasAccess, onUnlock }: Props) {
 
   return (
     <div>
+      {/* Security Overlay for Focus Loss */}
+      {!isPageFocused && hasAccess && (
+        <div
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center text-center p-6 bg-black/95 backdrop-blur-3xl"
+          style={{ pointerEvents: "all" }}
+        >
+          <div className="text-6xl mb-4">🛡️</div>
+          <h3 className="text-xl font-bold text-rose-400 mb-2">Security Shield Active</h3>
+          <p className="text-sm max-w-sm text-rose-200/60 leading-relaxed">
+            Screen capturing is blocked. Please click inside the window to unlock content.
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <h2 className="text-2xl font-black flex items-center gap-2">
           Exclusive Content{" "}
@@ -92,6 +148,8 @@ export default function ContentGallery({ hasAccess, onUnlock }: Props) {
                 src={item.url}
                 alt={item.title}
                 className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
                 style={{
                   filter:
                     item.isLocked && !hasAccess ? "blur(24px) brightness(0.4)" : "none",
@@ -101,6 +159,10 @@ export default function ContentGallery({ hasAccess, onUnlock }: Props) {
               <video
                 src={item.url}
                 className="w-full h-full object-cover"
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+                controlsList="nodownload"
+                disablePictureInPicture
                 style={{
                   filter:
                     item.isLocked && !hasAccess ? "blur(24px) brightness(0.4)" : "none",
@@ -109,9 +171,34 @@ export default function ContentGallery({ hasAccess, onUnlock }: Props) {
                 loop
                 playsInline
                 autoPlay={item.isLocked && !hasAccess}
-                onMouseEnter={(e) => hasAccess && e.currentTarget.play()}
-                onMouseLeave={(e) => !item.isLocked && e.currentTarget.pause()}
               />
+            )}
+
+            {/* Transparent protection overlay & hover-play trigger */}
+            {(!item.isLocked || hasAccess) && (
+              <div
+                className="absolute inset-0 z-10 select-none cursor-default"
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+                onMouseEnter={(e) => {
+                  if (!hasAccess) return;
+                  const video = e.currentTarget.parentElement?.querySelector("video");
+                  if (video) video.play().catch(() => {});
+                }}
+                onMouseLeave={(e) => {
+                  const video = e.currentTarget.parentElement?.querySelector("video");
+                  if (video) video.pause();
+                }}
+              />
+            )}
+
+            {/* Watermark overlay */}
+            {hasAccess && userEmail && (
+              <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
+                <div className="text-[10px] font-mono text-white/5 rotate-[-25deg] select-none whitespace-nowrap uppercase tracking-widest">
+                  {userEmail} • Hannah OnlyFans
+                </div>
+              </div>
             )}
 
             {/* Lock overlay */}
@@ -136,7 +223,7 @@ export default function ContentGallery({ hasAccess, onUnlock }: Props) {
             {/* Info bar on hover (unlocked) */}
             {(!item.isLocked || hasAccess) && (
               <div
-                className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
                 style={{
                   background: "linear-gradient(transparent, rgba(10,3,5,0.9))",
                 }}
@@ -148,7 +235,7 @@ export default function ContentGallery({ hasAccess, onUnlock }: Props) {
             {/* Type badge */}
             {item.type === "video" && (!item.isLocked || hasAccess) && (
               <div
-                className="absolute top-2 right-2 bg-black/60 rounded-md px-2 py-0.5 text-xs"
+                className="absolute top-2 right-2 bg-black/60 rounded-md px-2 py-0.5 text-xs z-20"
               >
                 🎬
               </div>

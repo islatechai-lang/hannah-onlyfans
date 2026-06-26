@@ -45,7 +45,7 @@ export default function HeroSection() {
           variants={fadeUp}
           className="flex justify-center mb-6"
         >
-          <span className="badge-red">💦 Limited Time — ₱299 Lifetime</span>
+          <span className="badge-red">💦 Limited Time — ₱280 for 7 Days</span>
         </motion.div>
 
         {/* Headline */}
@@ -71,7 +71,7 @@ export default function HeroSection() {
           className="text-lg sm:text-xl mb-10 max-w-2xl mx-auto leading-relaxed"
           style={{ color: "var(--muted)" }}
         >
-          Premium photos, videos, and exclusive content. One payment, lifetime
+          Premium photos, videos, and exclusive content. 7 days
           access. No subscriptions, no BS.
         </motion.p>
 
@@ -89,7 +89,7 @@ export default function HeroSection() {
             </Link>
           ) : (
             <Link href="/sign-in" className="btn-red text-lg px-8 py-4">
-              Get Access Now — ₱299 💋
+              Get Access Now — ₱280 💋
             </Link>
           )}
           <Link href="#pricing" className="btn-ghost text-lg px-8 py-4">
@@ -106,7 +106,7 @@ export default function HeroSection() {
           className="mt-14 flex flex-wrap justify-center gap-6"
         >
           {[
-            { icon: "🔒", label: "Lifetime Access" },
+            { icon: "📅", label: "7 Days Access" },
             { icon: "💳", label: "GCash Payment" },
             { icon: "⚡", label: "Instant Verify" },
             { icon: "🔞", label: "18+ Only" },

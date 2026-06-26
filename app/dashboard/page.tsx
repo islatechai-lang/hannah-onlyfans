@@ -14,6 +14,24 @@ export default function DashboardPage() {
   const router = useRouter();
   const [showPayment, setShowPayment] = useState(false);
 
+  const getExpiryText = () => {
+    if (!profile || !profile.accessExpiresAt) {
+      return "Enjoy all exclusive content. 7 days access.";
+    }
+    const date = typeof profile.accessExpiresAt.toDate === "function"
+      ? profile.accessExpiresAt.toDate()
+      : new Date((profile.accessExpiresAt as any).seconds * 1000);
+    const formattedDate = date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    const diffTime = date.getTime() - new Date().getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays <= 0) return "Access expired.";
+    return `Access active · Expires on ${formattedDate} (${diffDays} ${diffDays === 1 ? "day" : "days"} left)`;
+  };
+
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/sign-in");
@@ -80,14 +98,14 @@ export default function DashboardPage() {
                 🔒 Content is locked
               </h2>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                Send ₱299 via GCash and upload your screenshot for instant access.
+                Send ₱280 via GCash and upload your screenshot for 7-day access.
               </p>
             </div>
             <button
               onClick={() => setShowPayment(true)}
               className="btn-red whitespace-nowrap"
             >
-              Unlock Now — ₱299 💋
+              Unlock Now — ₱280 💋
             </button>
           </motion.div>
         )}
@@ -102,9 +120,9 @@ export default function DashboardPage() {
           >
             <span className="text-2xl">🎉</span>
             <div>
-              <p className="font-bold text-green-400">You have full access!</p>
+              <p className="font-bold text-green-400">You have active access!</p>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                Enjoy all exclusive content. Lifetime access — no expiry.
+                {getExpiryText()}
               </p>
             </div>
           </motion.div>
@@ -114,6 +132,7 @@ export default function DashboardPage() {
         <ContentGallery
           hasAccess={profile.hasAccess}
           onUnlock={() => setShowPayment(true)}
+          userEmail={profile.email}
         />
       </div>
 

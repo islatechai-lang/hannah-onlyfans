@@ -32,7 +32,7 @@ export default function PaymentModal({
 
   const gcashNumber = "09454320799";
   const gcashName = "AL****H M** G.";
-  const price = "299";
+  const price = "280";
 
   const handleUploadComplete = async (url: string) => {
     setScreenshotUrl(url);
@@ -117,7 +117,7 @@ export default function PaymentModal({
                 Payment Instructions
               </h2>
               <p className="text-center text-sm mb-6" style={{ color: "var(--muted)" }}>
-                Follow these steps to unlock lifetime access
+                Follow these steps to unlock 7-day access
               </p>
 
               <ol className="space-y-4 mb-8">
@@ -129,7 +129,7 @@ export default function PaymentModal({
                   },
                   {
                     n: "2",
-                    title: "Send ₱299",
+                    title: "Send ₱280",
                     desc: `Send exactly ₱${price} to the number below`,
                   },
                   {
@@ -258,7 +258,7 @@ export default function PaymentModal({
                 Access Granted!
               </h2>
               <p style={{ color: "var(--muted)" }}>
-                Payment verified ✓ You now have lifetime access. Redirecting...
+                Payment verified ✓ You now have 7-day access. Redirecting...
               </p>
             </div>
           )}

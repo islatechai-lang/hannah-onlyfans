@@ -23,6 +23,21 @@ export interface UserProfile {
   photoURL: string;
   hasAccess: boolean;
   createdAt: Timestamp;
+  accessExpiresAt?: Timestamp | null;
+}
+
+function checkAndExpireAccess(profile: UserProfile): UserProfile {
+  if (profile.hasAccess && profile.accessExpiresAt) {
+    const expires = typeof profile.accessExpiresAt.toDate === "function"
+      ? profile.accessExpiresAt.toDate()
+      : new Date((profile.accessExpiresAt as any).seconds * 1000);
+    if (expires < new Date()) {
+      profile.hasAccess = false;
+      // Update firestore asynchronously to revoke access
+      updateDoc(doc(db, "users", profile.uid), { hasAccess: false }).catch(console.error);
+    }
+  }
+  return profile;
 }
 
 export async function getOrCreateUser(user: {
@@ -33,7 +48,7 @@ export async function getOrCreateUser(user: {
 }): Promise<UserProfile> {
   const ref = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
-  if (snap.exists()) return snap.data() as UserProfile;
+  if (snap.exists()) return checkAndExpireAccess(snap.data() as UserProfile);
 
   const profile: UserProfile = {
     uid: user.uid,
@@ -49,22 +64,31 @@ export async function getOrCreateUser(user: {
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   const snap = await getDoc(doc(db, "users", uid));
-  return snap.exists() ? (snap.data() as UserProfile) : null;
+  if (!snap.exists()) return null;
+  return checkAndExpireAccess(snap.data() as UserProfile);
 }
 
 export async function grantAccess(uid: string) {
-  await updateDoc(doc(db, "users", uid), { hasAccess: true });
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7);
+  await updateDoc(doc(db, "users", uid), {
+    hasAccess: true,
+    accessExpiresAt: Timestamp.fromDate(expiresAt),
+  });
 }
 
 export async function revokeAccess(uid: string) {
-  await updateDoc(doc(db, "users", uid), { hasAccess: false });
+  await updateDoc(doc(db, "users", uid), {
+    hasAccess: false,
+    accessExpiresAt: null,
+  });
 }
 
 export async function getAllUsers(): Promise<UserProfile[]> {
   const snap = await getDocs(
     query(collection(db, "users"), orderBy("createdAt", "desc"))
   );
-  return snap.docs.map((d) => d.data() as UserProfile);
+  return snap.docs.map((d) => checkAndExpireAccess(d.data() as UserProfile));
 }
 
 // ─── Payment ─────────────────────────────────────────────────────────────────

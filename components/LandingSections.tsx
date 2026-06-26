@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 const features = [
   "Exclusive photos & videos 📸",
   "New content added regularly 🔥",
-  "Lifetime access, no subscription 💎",
+  "7 days access, no subscription 💎",
   "Private members-only feed 🔞",
   "Behind-the-scenes content 🎬",
   "Direct vibe with Hannah 💌",
@@ -15,7 +15,7 @@ const features = [
 const testimonials = [
   {
     name: "JM",
-    text: "Best ₱299 I ever spent. Content is 🔥🔥🔥",
+    text: "Best ₱280 I ever spent. Content is 🔥🔥🔥",
     stars: 5,
     date: "1 week ago",
   },
@@ -36,11 +36,11 @@ const testimonials = [
 const faqs = [
   {
     q: "How do I pay?",
-    a: "Send ₱299 to our GCash number, upload your screenshot, and get instant access. The process takes under 5 minutes.",
+    a: "Send ₱280 to our GCash number, upload your screenshot, and get instant access. The process takes under 5 minutes.",
   },
   {
-    q: "Is it really lifetime access?",
-    a: "Yes! Pay once, access forever. No monthly fees, no renewals. Your account is unlocked permanently.",
+    q: "How long is my access valid?",
+    a: "Your access is valid for 7 full days from the moment payment is verified. You can always unlock again if you want to keep viewing.",
   },
   {
     q: "What payment methods are accepted?",
@@ -73,7 +73,7 @@ export default function LandingSections() {
               What you <span className="gradient-text">unlock</span>
             </h2>
             <p style={{ color: "var(--muted)" }}>
-              Everything included in one lifetime payment
+              Everything included in one payment
             </p>
           </motion.div>
 
@@ -105,7 +105,7 @@ export default function LandingSections() {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-4xl sm:text-5xl font-black mb-4">
-              One price. <span className="gradient-text">Lifetime.</span>
+              One price. <span className="gradient-text">7 Days Access.</span>
             </h2>
             <p className="mb-10" style={{ color: "var(--muted)" }}>
               No tricks, no subscriptions.
@@ -128,10 +128,10 @@ export default function LandingSections() {
                 🔥 Best Deal
               </div>
               <div className="text-6xl font-black mb-1 gradient-text">
-                ₱299
+                ₱280
               </div>
               <div className="text-sm mb-8" style={{ color: "var(--muted)" }}>
-                One-time payment · Lifetime access
+                One-time payment · 7 days access
               </div>
 
               <ul className="text-left space-y-3 mb-8">
@@ -246,7 +246,7 @@ export default function LandingSections() {
             <span className="gradient-text">everything?</span>
           </h2>
           <p className="mb-8 text-lg" style={{ color: "var(--muted)" }}>
-            Join hundreds of members. ₱299 one-time. Lifetime access.
+            Join hundreds of members. ₱280 one-time. 7 days access.
           </p>
           <Link href="/sign-in" className="btn-red text-xl px-10 py-5">
             Get Access Now 💋

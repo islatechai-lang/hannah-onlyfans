@@ -162,7 +162,7 @@ export default function AdminPage() {
   // ── Stats ──────────────────────────────────────────────────────────────────
   const totalRevenue =
     payments.filter((p) => p.status === "approved").length *
-    parseInt(process.env.NEXT_PUBLIC_PRICE ?? "299");
+    parseInt(process.env.NEXT_PUBLIC_PRICE ?? "280");
   const pending = payments.filter((p) => p.status === "pending").length;
   const approved = payments.filter((p) => p.status === "approved").length;
   const activeUsers = users.filter((u) => u.hasAccess).length;
@@ -468,6 +468,13 @@ export default function AdminPage() {
                       >
                         {u.email}
                       </p>
+                      {u.hasAccess && u.accessExpiresAt && (
+                        <p className="text-[10px] text-emerald-400 mt-1 font-mono">
+                          Expires: {typeof u.accessExpiresAt.toDate === "function"
+                            ? u.accessExpiresAt.toDate().toLocaleDateString()
+                            : new Date((u.accessExpiresAt as any).seconds * 1000).toLocaleDateString()}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
                       <span
