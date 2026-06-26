@@ -98,7 +98,7 @@ export default function DashboardPage() {
                 🔒 Content is locked
               </h2>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                Send ₱280 via GCash and upload your screenshot for 7-day access.
+                Send ₱280 via GCash and upload your screenshot for 8-day access.
               </p>
             </div>
             <button
