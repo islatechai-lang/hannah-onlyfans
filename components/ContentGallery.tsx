@@ -13,7 +13,8 @@ interface Props {
 export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props) {
   const [content, setContent] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<"all" | "image" | "video">("all");
+  const [activeFilter, setActiveFilter] = useState<"image" | "video">("image");
+  const [selectedItem, setSelectedItem] = useState<Content | null>(null);
   const [isPageFocused, setIsPageFocused] = useState(true);
 
   useEffect(() => {
@@ -63,7 +64,7 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
   }, []);
 
   const filteredContent = content.filter(
-    (item) => activeFilter === "all" || item.type === activeFilter
+    (item) => item.type === activeFilter
   );
 
   if (loading) {
@@ -116,7 +117,7 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
         
         {/* Filter Tabs */}
         <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/5 w-fit">
-          {(["all", "image", "video"] as const).map((filter) => (
+          {(["image", "video"] as const).map((filter) => (
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
@@ -126,7 +127,7 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
                   : "text-rose-200/50 hover:text-rose-200"
               }`}
             >
-              {filter === "all" ? "💦 All" : filter === "image" ? "📸 Photos" : "🎬 Videos"}
+              {filter === "image" ? "📸 Photos" : "🎬 Videos"}
             </button>
           ))}
         </div>
@@ -139,8 +140,15 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.05 }}
-            className="relative aspect-square rounded-xl overflow-hidden group"
+            className="relative aspect-square rounded-xl overflow-hidden group cursor-pointer"
             style={{ border: "1px solid rgba(225,29,72,0.15)" }}
+            onClick={() => {
+              if (hasAccess || !item.isLocked) {
+                setSelectedItem(item);
+              } else {
+                onUnlock();
+              }
+            }}
           >
             {/* Content preview */}
             {item.type === "image" ? (
@@ -243,6 +251,74 @@ export default function ContentGallery({ hasAccess, onUnlock, userEmail }: Props
           </motion.div>
         ))}
       </div>
+
+      {/* Lightbox Modal */}
+      {selectedItem && (hasAccess || !selectedItem.isLocked) && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+          onClick={() => setSelectedItem(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white text-3xl font-bold z-50 hover:text-rose-400 cursor-pointer"
+            onClick={() => setSelectedItem(null)}
+          >
+            ✕
+          </button>
+          
+          <div
+            className="relative max-w-4xl max-h-[85vh] w-full h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {selectedItem.type === "image" ? (
+              <div className="relative w-fit h-fit flex items-center justify-center">
+                <img
+                  src={selectedItem.url}
+                  alt={selectedItem.title}
+                  className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
+                  onContextMenu={(e) => e.preventDefault()}
+                  onDragStart={(e) => e.preventDefault()}
+                />
+                {/* Transparent protection overlay */}
+                <div
+                  className="absolute inset-0 z-10 select-none cursor-default"
+                  onContextMenu={(e) => e.preventDefault()}
+                  onDragStart={(e) => e.preventDefault()}
+                />
+                
+                {/* Watermark overlay */}
+                {userEmail && (
+                  <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
+                    <div className="text-xs sm:text-sm font-mono text-white/8 rotate-[-25deg] select-none whitespace-nowrap uppercase tracking-widest">
+                      {userEmail} • Hannah OnlyFans
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="relative w-full max-w-2xl h-fit flex items-center justify-center">
+                <video
+                  src={selectedItem.url}
+                  controls
+                  autoPlay
+                  controlsList="nodownload"
+                  disablePictureInPicture
+                  className="w-full max-h-[80vh] rounded-lg shadow-2xl"
+                  onContextMenu={(e) => e.preventDefault()}
+                  onDragStart={(e) => e.preventDefault()}
+                />
+                {/* Watermark overlay */}
+                {userEmail && (
+                  <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
+                    <div className="text-xs sm:text-sm font-mono text-white/8 rotate-[-25deg] select-none whitespace-nowrap uppercase tracking-widest">
+                      {userEmail} • Hannah OnlyFans
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
