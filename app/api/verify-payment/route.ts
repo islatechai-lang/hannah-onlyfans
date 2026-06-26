@@ -22,7 +22,8 @@ Check ALL of the following:
 1. Is this a successful GCash payment/transfer confirmation? (not pending, not failed)
 2. Is the amount exactly ₱${price} or PHP ${price}?
 3. Does the recipient number contain "${gcashNumber.replace(/-/g, "")}" or "${gcashNumber}"?
-4. Is the payment date within the last 7 days? (Today is ${new Date().toLocaleDateString("en-PH")})
+4. Does the recipient name shown on the receipt match "AL****H M** G." (this is the masked GCash name)?
+5. Is the payment date within the last 8 days? (Today is ${new Date().toLocaleDateString("en-PH")})
 
 Respond ONLY with valid JSON in this exact format:
 {
@@ -31,6 +32,7 @@ Respond ONLY with valid JSON in this exact format:
   "reason": "brief explanation of your decision",
   "amountMatch": true or false,
   "recipientMatch": true or false,
+  "nameMatch": true or false,
   "statusSuccess": true or false,
   "dateRecent": true or false
 }`;
