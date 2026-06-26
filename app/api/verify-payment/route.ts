@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
 
-    const gcashNumber = process.env.NEXT_PUBLIC_GCASH_NUMBER ?? "";
+    const gcashNumber = "09454320799";
     const price = process.env.NEXT_PUBLIC_PRICE ?? "280";
 
     const prompt = `You are a payment verification assistant. Analyze this GCash payment screenshot carefully.
