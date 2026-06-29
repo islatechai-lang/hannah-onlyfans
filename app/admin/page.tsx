@@ -12,13 +12,14 @@ import {
   addContent,
   deleteContent,
   deletePayment,
+  updateAdminPassword,
   type Payment,
   type UserProfile,
   type Content,
 } from "@/lib/firestore";
 import FileUploader from "@/components/FileUploader";
 
-type Tab = "overview" | "payments" | "users" | "content";
+type Tab = "overview" | "payments" | "users" | "content" | "settings";
 
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
@@ -40,6 +41,37 @@ export default function AdminPage() {
   const [uploading, setUploading] = useState(false);
   const [previewContent, setPreviewContent] = useState<Content | null>(null);
   const [activeFilter, setActiveFilter] = useState<"image" | "video">("image");
+
+  // Settings form
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [settingsError, setSettingsError] = useState("");
+  const [settingsSuccess, setSettingsSuccess] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+
+  const handleChangePassword = async () => {
+    setSettingsError("");
+    setSettingsSuccess("");
+    if (!newPassword) {
+      setSettingsError("Password cannot be empty");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setSettingsError("Passwords do not match");
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      await updateAdminPassword(newPassword);
+      setSettingsSuccess("Admin password updated successfully! 🎉");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (e: any) {
+      setSettingsError(e.message || "Failed to update password");
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
 
   const handleLogin = async () => {
     setAuthError("");
@@ -179,6 +211,7 @@ export default function AdminPage() {
     { key: "payments", label: "Payments", icon: "💳" },
     { key: "users", label: "Users", icon: "👥" },
     { key: "content", label: "Content", icon: "📸" },
+    { key: "settings", label: "Settings", icon: "⚙️" },
   ];
 
   return (
@@ -710,6 +743,67 @@ export default function AdminPage() {
                     </p>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── SETTINGS ────────────────────────────────────── */}
+          {tab === "settings" && (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+            >
+              <h2 className="text-2xl font-black mb-6">Settings</h2>
+              
+              <div className="glass p-6 max-w-md" style={{ borderRadius: 20 }}>
+                <h3 className="font-bold mb-5 text-rose-300">
+                  ⚙️ Change Admin Password
+                </h3>
+                
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-xs mb-1.5 font-semibold text-rose-200/60">
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      className="input-red"
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs mb-1.5 font-semibold text-rose-200/60">
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      className="input-red"
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {settingsError && (
+                  <p className="text-rose-400 text-sm mb-4">{settingsError}</p>
+                )}
+                {settingsSuccess && (
+                  <p className="text-emerald-400 text-sm mb-4">{settingsSuccess}</p>
+                )}
+
+                <button
+                  onClick={handleChangePassword}
+                  disabled={passwordSaving}
+                  className="btn-red w-full justify-center disabled:opacity-40"
+                >
+                  {passwordSaving ? "Saving..." : "Update Password ✓"}
+                </button>
               </div>
             </motion.div>
           )}

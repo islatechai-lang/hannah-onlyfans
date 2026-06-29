@@ -188,3 +188,7 @@ export async function deletePayment(id: string) {
   const { deleteDoc } = await import("firebase/firestore");
   await deleteDoc(doc(db, "payments", id));
 }
+
+export async function updateAdminPassword(password: string) {
+  await setDoc(doc(db, "settings", "admin"), { password }, { merge: true });
+}
