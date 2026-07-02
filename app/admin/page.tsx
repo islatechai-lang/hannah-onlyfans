@@ -49,6 +49,10 @@ export default function AdminPage() {
   const [settingsSuccess, setSettingsSuccess] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
 
+  // Unread tracking states
+  const [lastViewedPayments, setLastViewedPayments] = useState<number>(0);
+  const [lastViewedUsers, setLastViewedUsers] = useState<number>(0);
+
   const handleChangePassword = async () => {
     setSettingsError("");
     setSettingsSuccess("");
@@ -88,6 +92,22 @@ export default function AdminPage() {
     }
   };
 
+  const navigateContent = (direction: "prev" | "next") => {
+    if (!previewContent) return;
+    const filtered = content.filter((item) => item.type === previewContent.type);
+    if (filtered.length <= 1) return;
+    const currentIndex = filtered.findIndex((item) => item.id === previewContent.id);
+    if (currentIndex === -1) return;
+
+    let newIndex = currentIndex;
+    if (direction === "prev") {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : filtered.length - 1;
+    } else {
+      newIndex = currentIndex < filtered.length - 1 ? currentIndex + 1 : 0;
+    }
+    setPreviewContent(filtered[newIndex]);
+  };
+
   const loadData = async () => {
     setLoading(true);
     const [p, u, c] = await Promise.all([
@@ -105,6 +125,71 @@ export default function AdminPage() {
     if (authed) loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authed]);
+
+  // Initialize unread timestamps from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const pTime = localStorage.getItem("admin_last_viewed_payments");
+      const uTime = localStorage.getItem("admin_last_viewed_users");
+      const now = Date.now();
+      if (pTime) {
+        setLastViewedPayments(parseInt(pTime));
+      } else {
+        localStorage.setItem("admin_last_viewed_payments", now.toString());
+        setLastViewedPayments(now);
+      }
+      if (uTime) {
+        setLastViewedUsers(parseInt(uTime));
+      } else {
+        localStorage.setItem("admin_last_viewed_users", now.toString());
+        setLastViewedUsers(now);
+      }
+    }
+  }, []);
+
+  // Update last viewed timestamps when viewing specific tabs
+  useEffect(() => {
+    if (tab === "payments") {
+      const now = Date.now();
+      localStorage.setItem("admin_last_viewed_payments", now.toString());
+      setLastViewedPayments(now);
+    } else if (tab === "users") {
+      const now = Date.now();
+      localStorage.setItem("admin_last_viewed_users", now.toString());
+      setLastViewedUsers(now);
+    }
+  }, [tab, payments.length, users.length]);
+
+  // Keyboard navigation for preview lightbox
+  useEffect(() => {
+    if (!previewContent) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (previewContent.type === "image") {
+        if (e.key === "ArrowLeft") {
+          navigateContent("prev");
+        } else if (e.key === "ArrowRight") {
+          navigateContent("next");
+        }
+      } else if (previewContent.type === "video") {
+        if (e.key === "ArrowUp") {
+          e.preventDefault();
+          navigateContent("prev");
+        } else if (e.key === "ArrowDown") {
+          e.preventDefault();
+          navigateContent("next");
+        }
+      }
+      if (e.key === "Escape") {
+        setPreviewContent(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [previewContent, content]);
 
   const handleApprove = async (payment: Payment) => {
     await updatePaymentStatus(payment.id, "approved");
@@ -206,6 +291,25 @@ export default function AdminPage() {
   const approved = payments.filter((p) => p.status === "approved").length;
   const activeUsers = users.filter((u) => u.hasAccess).length;
 
+  // Calculate unread counts
+  const unreadPaymentsCount = payments.filter((p) => {
+    const time = p.submittedAt && typeof (p.submittedAt as any).toMillis === "function"
+      ? (p.submittedAt as any).toMillis()
+      : typeof p.submittedAt?.toDate === "function"
+        ? p.submittedAt.toDate().getTime()
+        : (p.submittedAt as any)?.seconds * 1000 || 0;
+    return time > lastViewedPayments;
+  }).length;
+
+  const unreadUsersCount = users.filter((u) => {
+    const time = u.createdAt && typeof (u.createdAt as any).toMillis === "function"
+      ? (u.createdAt as any).toMillis()
+      : typeof u.createdAt?.toDate === "function"
+        ? u.createdAt.toDate().getTime()
+        : (u.createdAt as any)?.seconds * 1000 || 0;
+    return time > lastViewedUsers;
+  }).length;
+
   const tabs: { key: Tab; label: string; icon: string }[] = [
     { key: "overview", label: "Overview", icon: "📊" },
     { key: "payments", label: "Payments", icon: "💳" },
@@ -233,7 +337,7 @@ export default function AdminPage() {
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all relative ${
                 tab === t.key
                   ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
                   : "text-rose-200/50 hover:text-rose-300"
@@ -241,6 +345,17 @@ export default function AdminPage() {
             >
               <span className="mr-1">{t.icon}</span>
               <span className="hidden sm:inline">{t.label}</span>
+
+              {t.key === "payments" && unreadPaymentsCount > 0 && (
+                <span className="absolute -top-1.5 -right-1 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-black shadow-lg animate-pulse">
+                  {unreadPaymentsCount}
+                </span>
+              )}
+              {t.key === "users" && unreadUsersCount > 0 && (
+                <span className="absolute -top-1.5 -right-1 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-black shadow-lg animate-pulse">
+                  {unreadUsersCount}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -817,6 +932,60 @@ export default function AdminPage() {
           style={{ background: "rgba(10,3,5,0.9)", backdropFilter: "blur(10px)" }}
           onClick={() => setPreviewContent(null)}
         >
+          {/* Left Arrow (Prev - Image Mode only) */}
+          {previewContent.type === "image" && content.filter((item) => item.type === "image").length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateContent("prev");
+              }}
+              className="absolute left-6 top-1/2 -translate-y-1/2 text-white hover:text-rose-400 text-4xl font-black z-40 bg-black/40 hover:bg-black/60 w-14 h-14 rounded-full flex items-center justify-center transition-all cursor-pointer select-none"
+            >
+              ‹
+            </button>
+          )}
+
+          {/* Right Arrow (Next - Image Mode only) */}
+          {previewContent.type === "image" && content.filter((item) => item.type === "image").length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateContent("next");
+              }}
+              className="absolute right-6 top-1/2 -translate-y-1/2 text-white hover:text-rose-400 text-4xl font-black z-40 bg-black/40 hover:bg-black/60 w-14 h-14 rounded-full flex items-center justify-center transition-all cursor-pointer select-none"
+            >
+              ›
+            </button>
+          )}
+
+          {/* Up Arrow (Prev - Video Mode only - Reels style) */}
+          {previewContent.type === "video" && content.filter((item) => item.type === "video").length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateContent("prev");
+              }}
+              className="absolute top-6 left-1/2 -translate-x-1/2 text-white hover:text-rose-400 text-2xl font-black z-40 bg-black/40 hover:bg-black/60 w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer select-none"
+              title="Previous Video"
+            >
+              ▲
+            </button>
+          )}
+
+          {/* Down Arrow (Next - Video Mode only - Reels style) */}
+          {previewContent.type === "video" && content.filter((item) => item.type === "video").length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateContent("next");
+              }}
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white hover:text-rose-400 text-2xl font-black z-40 bg-black/40 hover:bg-black/60 w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer select-none animate-bounce"
+              title="Next Video"
+            >
+              ▼
+            </button>
+          )}
+
           <div
             className="relative max-w-3xl max-h-[85vh] w-full flex flex-col items-center justify-center"
             onClick={(e) => e.stopPropagation()}
